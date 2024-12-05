@@ -1,0 +1,101 @@
+Turbo Assembler	 Version 4.1	    24/11/24 09:23:49	    Page 1
+D:\t3\t31.asm
+
+
+
+      1	      =0230		     IO244   EQU     0230H
+      2	      =0230		     IO273   EQU     0230H
+      3
+      4	0000			     _STACK  SEGMENT STACK
+      5	0000  64*(????)				     DW	     100     DUP(?)
+      6	00C8			     _STACK  ENDS
+      7
+      8	0000			     _DATA   SEGMENT WORD     PUBLIC 'DATA'
+      9	0000			     _DATA   ENDS
+     10
+     11	0000			     CODE	     SEGMENT
+     12				     ASSUME CS:CODE, DS:_DATA, SS:_STACK
+     13	0000			     START   PROC     NEAR
+     14	0000  B8 0000s				     MOV     AX, _DATA
+     15	0003  8E D8				     MOV DS, AX
+     16	0005			     INPUT:
+     17	0005  BA 0230				     MOV     DX, IO244
+     18	0008  EC				     IN	     AL, DX
+     19	0009  3C FF				     CMP     AL, 0FFH	     ;若开关全为低电平
+     20	000B  74 0C				     JZ	Q1		     ;从右往左依次点亮
+     21	000D  3C 00				     CMP     AL, 0	     ;若开关全为高电平
+     22	000F  74 19				     JZ	Q2		     ;从左往右依次点亮
+     23	0011  BA 0230				     MOV     DX, IO273
+     24	0014  F6 D0				     NOT     AL			     ;AX取非送给273,点亮对应的二极管
+     25	0016  EE				     OUT     DX, AL
+     26	0017  EB EC				     JMP     INPUT
+     27	0019			     Q1:
+     28	0019  B0 7F				     MOV     AL, 7FH
+     29	001B  BA 0230				     MOV     DX, IO273
+     30	001E			     R2L:
+     31	001E  E8 001A				     CALL     DELAY	     ;延时
+     32	0021  EE				     OUT     DX, AL	     ;送给273,点亮对应的二极管
+     33	0022  D0 C0				     ROL     AL, 1
+     34	0024  3C 7F				     CMP     AL, 7FH
+     35	0026  75 F6				     JNE     R2L		     ;若相等,说明一轮从右往左已经完成,若不等,	    +
+     36				     则继续循环
+     37	0028  EB DB				     JMP     INPUT
+     38
+     39	002A			     Q2:
+     40	002A  B0 FE				     MOV     AL, 0FEH
+     41	002C  BA 0230				     MOV     DX, IO273
+     42	002F			     L2R:
+     43	002F  E8 0009				     CALL     DELAY
+     44	0032  EE				     OUT     DX, AL
+     45	0033  D0 C8				     ROR     AL, 1
+     46	0035  3C FE				     CMP     AL, 0FEH
+     47	0037  75 F6				     JNE     L2R		     ;若相等,说明一轮从左往右已经完成,若不等,	    +
+     48				     则继续循环
+     49	0039  EB CA				     JMP     INPUT	     ;继续读入开关状态
+     50	003B			     Delay   PROC NEAR		     ;延时子程序
+     51	003B			     Delay1:
+     52	003B  33 C9		     XOR     CX,CX	     ;做一个异或操作将CX清零,仅循环一次
+     53	003D  E2 FE				     LOOP    $
+     54	003F  C3				     RET
+     55	0040			     Delay   ENDP
+     56	0040			     START   ENDP
+     57	0040			     CODE	     ENDS
+Turbo Assembler	 Version 4.1	    24/11/24 09:23:49	    Page 2
+D:\t3\t31.asm
+
+
+
+     58				     END	     START
+Turbo Assembler	 Version 4.1	    24/11/24 09:23:49	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "24/11/24"
+??FILENAME			  Text	 "t31	  "
+??TIME				  Text	 "09:23:49"
+??VERSION			  Number 040A
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CODE
+@FILENAME			  Text	 T31
+@WORDSIZE			  Text	 2
+DELAY				  Near	 CODE:003B
+DELAY1				  Near	 CODE:003B
+INPUT				  Near	 CODE:0005
+IO244				  Number 0230
+IO273				  Number 0230
+L2R				  Near	 CODE:002F
+Q1				  Near	 CODE:0019
+Q2				  Near	 CODE:002A
+R2L				  Near	 CODE:001E
+START				  Near	 CODE:0000
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CODE				  16  0040 Para	  none
+_DATA				  16  0000 Word	  Public  DATA
+_STACK				  16  00C8 Para	  Stack
+
