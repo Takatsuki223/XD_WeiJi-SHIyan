@@ -1,0 +1,246 @@
+Turbo Assembler	 Version 4.1	    24/11/28 19:36:32	    Page 1
+D:\LT2\t2.asm
+
+
+
+      1	0000			     STACK1 SEGMENT STACK
+      2	0000  80*(00)			     DB	128 DUP(0)
+      3	0080			     STACK1 ENDS
+      4
+      5	0000			     DATA SEGMENT
+      6	0000  50 6C 65 61 73 65	20+	 TISHIINFO	     DB	'Please	input a	number:',0AH,0DH,'$'
+      7	      69 6E 70 75 74 20	61+
+      8	      20 6E 75 6D 62 65	72+
+      9	      3A 0A 0D 24
+     10	0019  0A 0D 53 74 72 69	6E+	 STRING		     DB	0AH,0DH,'String:$'
+     11	      67 3A 24
+     12	0023  20			 INPUT		     DB	20H
+     13	0024  64*(24)			 DB 100	DUP('$')
+     14	0088  42 69 6E 61 72 79	3A+	 RESULT		     DB	'Binary:$'
+     15	      24
+     16	0090  50 6C 65 61 73 65	20+	 ERRORINFO	     DB	'Please	input again:',0AH,0DH,'$'
+     17	      69 6E 70 75 74 20	61+
+     18	      67 61 69 6E 3A 0A	0D+
+     19	      24
+     20	00A6			     DATA ENDS
+     21
+     22	0000			     CODE SEGMENT
+     23				     ASSUME CS:CODE,DS:DATA,SS:STACK1
+     24
+     25	0000			     START:
+     26	0000  B8 0000s			 MOV AX, STACK1
+     27	0003  8E D0			 MOV SS, AX
+     28	0005  B8 0000s			 MOV AX, DATA
+     29	0008  8E D8			 MOV DS, AX
+     30	000A  BA 0000r			 MOV DX, OFFSET	TISHIINFO
+     31	000D  B4 09			 MOV AH, 09H
+     32	000F  CD 21			 INT 21H
+     33	0011  BB 0000			 MOV BX, 0
+     34
+     35	0014			     READ:
+     36	0014  BA 0019r			 MOV DX, OFFSET	STRING
+     37	0017  B4 09			 MOV AH, 09H
+     38	0019  CD 21			 INT 21H
+     39	001B  BA 0023r			 MOV DX, OFFSET	INPUT
+     40	001E  B4 0A			 MOV AH, 0AH
+     41	0020  B0 00			 MOV AL, 00H
+     42	0022  CD 21			 INT 21H
+     43	0024  BB 0024r			 MOV BX, OFFSET	INPUT+1
+     44	0027  8B 0F			 MOV CX, [BX]
+     45	0029  B5 00			 MOV CH, 0
+     46	002B  BA 0025r			 MOV DX, OFFSET	INPUT+2
+     47	002E  8A 47 01			 MOV AL, [BX+1]
+     48	0031  3C 71			 CMP AL, 'q'
+     49	0033  74 18			 JE EXIT
+     50	0035  3C 51			 CMP AL, 'Q'
+     51	0037  74 14			 JE EXIT
+     52
+     53	0039  E8 00AF			 CALL NEW
+     54	003C  E8 0012			 CALL BINARY
+     55	003F  50			 PUSH AX
+     56	0040  BA 0088r			 MOV DX, OFFSET	RESULT
+     57	0043  B4 09			 MOV AH, 09H
+Turbo Assembler	 Version 4.1	    24/11/28 19:36:32	    Page 2
+D:\LT2\t2.asm
+
+
+
+     58	0045  CD 21			 INT 21H
+     59	0047  58			 POP AX
+     60	0048  E8 007F			 CALL DISPBIN
+     61	004B  EB C7			 JMP READ
+     62
+     63	004D			     EXIT:
+     64	004D  B4 4C			  MOV AH, 4CH
+     65	004F  CD 21			  INT 21H
+     66
+     67	0051			     BINARY PROC
+     68	0051  53			 PUSH BX
+     69	0052  56			 PUSH SI
+     70	0053  51			 PUSH CX
+     71	0054  52			 PUSH DX
+     72	0055  BB 0000			 MOV BX, 0
+     73	0058  8B F2			 MOV SI, DX
+     74	005A  B4 00			 MOV AH, 0
+     75	005C  8A 04			 MOV AL, [SI]
+     76	005E  2D 0030			 SUB AX, 30H
+     77	0061  3D 0009			 CMP AX, 9
+     78	0064  77 20			 JA OVERERR
+     79	0066  83 F9 01			 CMP CX, 1H
+     80	0069  74 33			 JE BINPROCESS
+     81	006B  BA 000A			 MOV DX, 10
+     82	006E  49			 DEC CX
+     83	006F			     LOOPFORBIN:
+     84	006F  46			 INC SI
+     85	0070  BA 000A			 MOV DX, 10
+     86	0073  F7 E2			 MUL DX
+     87	0075  8A 1C			 MOV BL, [SI]
+     88	0077  80 EB 30			 SUB BL, 30H
+     89	007A  80 FB 09			 CMP BL, 9
+     90	007D  77 07			 JA OVERERR
+     91	007F  03 C3			 ADD AX, BX
+     92	0081  E2 EC			 LOOP LOOPFORBIN
+     93	0083  EB 19 90			 JMP BINPROCESS
+     94
+     95	0086			     OVERERR:
+     96	0086  5A			 POP DX
+     97	0087  59			 POP CX
+     98	0088  51			 PUSH CX
+     99	0089  52			 PUSH DX
+    100	008A  E8 0016			 CALL COUNT
+    101	008D  E8 005B			 CALL NEW
+    102	0090  BA 0090r			 MOV DX, OFFSET	ERRORINFO
+    103	0093  B4 09			 MOV AH, 09H
+    104	0095  CD 21			 INT 21H
+    105	0097  5A			 POP DX
+    106	0098  59			 POP CX
+    107	0099  5E			 POP SI
+    108	009A  5B			 POP BX
+    109	009B  E9 FF76			 JMP READ
+    110
+    111	009E			     BINPROCESS:
+    112	009E  5A			 POP DX
+    113	009F  59			 POP CX
+    114	00A0  5E			 POP SI
+Turbo Assembler	 Version 4.1	    24/11/28 19:36:32	    Page 3
+D:\LT2\t2.asm
+
+
+
+    115	00A1  5B			 POP BX
+    116	00A2  C3			 RET
+    117	00A3			     BINARY ENDP
+    118
+    119	00A3			     COUNT PROC
+    120	00A3  50			 PUSH AX
+    121	00A4  53			 PUSH BX
+    122	00A5  51			 PUSH CX
+    123	00A6  52			 PUSH DX
+    124	00A7  8B F2			 MOV SI, DX
+    125	00A9  B8 0000			 MOV AX, 0
+    126	00AC			     CHECK:
+    127	00AC  8A 1C			 MOV BL, [SI]
+    128	00AE  46			 INC SI
+    129	00AF  80 FB 30			 CMP BL, 30H
+    130	00B2  72 06			 JB NOTNUM
+    131	00B4  80 FB 39			 CMP BL, 39H
+    132	00B7  77 01			 JA NOTNUM
+    133	00B9  40			 INC AX
+    134	00BA			     NOTNUM:
+    135	00BA  E2 F0			 LOOP CHECK
+    136	00BC  05 0030			 ADD AX, 30H
+    137	00BF  8B D0			 MOV DX, AX
+    138	00C1  B4 02			 MOV AH, 02H
+    139	00C3  CD 21			 INT 21H
+    140	00C5  5A			 POP DX
+    141	00C6  59			 POP CX
+    142	00C7  5B			 POP BX
+    143	00C8  58			 POP AX
+    144	00C9  C3			 RET
+    145	00CA			     COUNT ENDP
+    146
+    147	00CA			     DISPBIN PROC
+    148	00CA  50			 PUSH AX
+    149	00CB  53			 PUSH BX
+    150	00CC  51			 PUSH CX
+    151	00CD  52			 PUSH DX
+    152	00CE  8B D8			 MOV BX, AX
+    153	00D0  B9 0010			 MOV CX, 16	; Display 16 bits (maximum size	for 16-bit integer)
+    154	00D3			     L1:
+    155	00D3  51			 PUSH CX
+    156	00D4  B1 01			 MOV CL, 1
+    157	00D6  D3 C3			 ROL BX, CL
+    158	00D8  8A D3			 MOV DL, BL
+    159	00DA  80 E2 01			 AND DL, 01H	; Extract the lowest bit
+    160	00DD  80 C2 30			 ADD DL, 30H
+    161	00E0  B4 02			 MOV AH, 02H
+    162	00E2  CD 21			 INT 21H
+    163	00E4  59			 POP CX
+    164	00E5  E2 EC			 LOOP L1
+    165	00E7  5A			 POP DX
+    166	00E8  59			 POP CX
+    167	00E9  5B			 POP BX
+    168	00EA  58			 POP AX
+    169	00EB			     DISPBIN ENDP
+    170
+    171	00EB			     NEW PROC
+Turbo Assembler	 Version 4.1	    24/11/28 19:36:32	    Page 4
+D:\LT2\t2.asm
+
+
+
+    172	00EB  50			 PUSH AX
+    173	00EC  52			 PUSH DX
+    174	00ED  B4 02			 MOV AH, 02H
+    175	00EF  B2 0A			 MOV DL, 0AH
+    176	00F1  CD 21			 INT 21H
+    177	00F3  B2 0D			 MOV DL, 0DH
+    178	00F5  CD 21			 INT 21H
+    179	00F7  5A			 POP DX
+    180	00F8  58			 POP AX
+    181	00F9  C3			 RET
+    182	00FA			     NEW ENDP
+    183
+    184	00FA			     CODE ENDS
+    185				     END START
+Turbo Assembler	 Version 4.1	    24/11/28 19:36:32	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "24/11/28"
+??FILENAME			  Text	 "t2	  "
+??TIME				  Text	 "19:36:32"
+??VERSION			  Number 040A
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CODE
+@FILENAME			  Text	 T2
+@WORDSIZE			  Text	 2
+BINARY				  Near	 CODE:0051
+BINPROCESS			  Near	 CODE:009E
+CHECK				  Near	 CODE:00AC
+COUNT				  Near	 CODE:00A3
+DISPBIN				  Near	 CODE:00CA
+ERRORINFO			  Byte	 DATA:0090
+EXIT				  Near	 CODE:004D
+INPUT				  Byte	 DATA:0023
+L1				  Near	 CODE:00D3
+LOOPFORBIN			  Near	 CODE:006F
+NEW				  Near	 CODE:00EB
+NOTNUM				  Near	 CODE:00BA
+OVERERR				  Near	 CODE:0086
+READ				  Near	 CODE:0014
+RESULT				  Byte	 DATA:0088
+START				  Near	 CODE:0000
+STRING				  Byte	 DATA:0019
+TISHIINFO			  Byte	 DATA:0000
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CODE				  16  00FA Para	  none
+DATA				  16  00A6 Para	  none
+STACK1				  16  0080 Para	  Stack
+

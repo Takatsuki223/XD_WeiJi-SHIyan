@@ -1,0 +1,294 @@
+Turbo Assembler	 Version 4.1	    24/11/28 20:32:00	    Page 1
+D:\t1\t1.asm
+
+
+
+      1	0000			     DSEG SEGMENT
+      2	0000  0D 0A 24			     next_row DB 0DH,0AH,24H
+      3	0003  0100*(24)			     buffer   DB 0100H dup('$')
+      4
+      5	0103  69 6D 70 75 74 20	61+	     cmdpro   DB 'imput	alpha >','$'
+      6	      6C 70 68 61 20 3E	24
+      7	0111  79 6F 75 72 20 69	64+	     STUID    DB 'your id >','$'
+      8	      20 3E 24
+      9	011B  79 6F 75 72 20 6E	61+	     STUNAME  DB 'your name >','$'
+     10	      6D 65 20 3E 24
+     11	0127			     DSEG ENDS
+     12
+     13	0000			     SSEG SEGMENT PARA STACK
+     14	0000  0100*(????)			     DW	256 DUP(?)
+     15	0200			     SSEG ENDS
+     16
+     17	0000			     CSEG SEGMENT
+     18					     ASSUME CS:CSEG,DS:DSEG
+     19	0000			     putchar proc
+     20	0000  52			     push dx
+     21	0001  50			     push ax
+     22	0002  B4 02			     mov  ah,02h
+     23	0004  8A D0			     mov  dl,al
+     24	0006  CD 21			     int  21h
+     25	0008  58			     pop  ax
+     26	0009  5A			     pop  dx
+     27	000A  C3			     ret
+     28	000B			     putchar endp
+     29
+     30	000B			     getchar proc near
+     31	000B  B4 01			     mov ah,01h
+     32	000D  B0 00			     mov al,0
+     33	000F  CD 21			     int 21H
+     34	0011  C3			     retn
+     35	0012			     getchar endp
+     36
+     37
+     38	0012			     hex PROC near
+     39	0012  50				     push ax
+     40	0013  52				     push dx
+     41	0014  8B D0				     mov dx,ax
+     42	0016  B5 04				     mov ch,4
+     43	0018				     L1:
+     44	0018  B1 04				     mov cl,4
+     45	001A  D3 C2				     rol dx,cl
+     46	001C  8A C2				     mov al,dl
+     47	001E  24 0F				     and al,0FH
+     48	0020  04 30				     add al,30h
+     49	0022  3C 3A				     cmp al,3ah
+     50	0024  7C 02				     jl	 printit
+     51	0026  04 07				     add al,7h
+     52	0028				     printit:
+     53	0028  E8 FFD5				     call putchar
+     54	002B  FE CD				     dec  ch
+     55	002D  75 E9				     jnz  L1
+     56	002F  5A				     pop dx
+     57	0030  58				     pop ax
+Turbo Assembler	 Version 4.1	    24/11/28 20:32:00	    Page 2
+D:\t1\t1.asm
+
+
+
+     58	0031  C3				     ret
+     59	0032			     hex ENDP
+     60
+     61	0032			     binary proc
+     62	0032  53				     push bx
+     63	0033  52				     push dx
+     64
+     65	0034  B6 00				     mov dh,0
+     66	0036				     binaryagain:
+     67
+     68	0036  80 FE 08				     cmp dh,8
+     69	0039  74 F7				     je	 binary
+     70	003B  D1 C0				     rol ax,1
+     71	003D  8B D8				     mov bx,ax
+     72	003F  25 0000				     and ax,000
+     73	0042  8A D0				     mov dl,al
+     74	0044  80 C2 30				     add dl,48
+     75	0047  B4 02				     mov ah,2
+     76	0049  CD 21				     int 21h
+     77	004B  FE C6				     inc dh
+     78	004D  8B C3				     mov ax,bx
+     79	004F  EB E1				     jmp binary
+     80
+     81	0051				      binaryover:
+     82	0051  5A				     pop dx
+     83	0052  5B				     pop bx
+     84	0053  C3				     ret
+     85
+     86	0054			     binary endp
+     87
+     88	0054			     print proc	near
+     89	0054  53				     push bx
+     90	0055  51				     push cx
+     91	0056  52				     push dx
+     92
+     93	0057  8B D0				     mov dx,ax
+     94	0059  B4 09				     mov ah,09H
+     95	005B  B0 00				     mov al,00H
+     96	005D  CD 21				     int 21H
+     97
+     98	005F  5A				     pop dx
+     99	0060  59				     pop cx
+    100	0061  5B				     pop bx
+    101	0062  C3				     ret
+    102	0063			     print endp
+    103
+    104	0063			     println proc near
+    105	0063  E8 FFEE				     call print
+    106	0066  B0 0D				     mov al,0DH
+    107	0068  E8 FF95				     call putchar
+    108	006B  B0 0D				     mov al,0DH
+    109	006D  E8 FF90				     call putchar
+    110	0070  C3				     ret
+    111	0071			     println endp
+    112
+    113	0071			     newline proc near
+    114	0071  50				     push ax
+Turbo Assembler	 Version 4.1	    24/11/28 20:32:00	    Page 3
+D:\t1\t1.asm
+
+
+
+    115	0072  B8 0000r				     lea ax,next_row
+    116	0075  E8 FFDC				     call print
+    117	0078  58				     pop ax
+    118	0079  C3				     ret
+    119	007A			     newline endp
+    120
+    121	007A			     input proc	near
+    122	007A  53			     push BX
+    123
+    124	007B  8B D0			     MOV DX,AX
+    125	007D  8B DA			     MOV BX,DX
+    126	007F  C6 07 FF			     MOV byte ptr DS:[BX],0ffh
+    127
+    128	0082  B4 0A			     mov ah,0ah
+    129	0084  B0 00			     mov al,0
+    130	0086  CD 21			     int 21h
+    131	0088  5B			     pop BX
+    132	0089  C3			     ret
+    133
+    134	008A			     input endp
+    135
+    136	008A			     circle proc near
+    137	008A				     rolling:
+    138	008A  B8 0103r			     lea    ax,cmdpro
+    139	008D  E8 FFD3					   call	  println
+    140	0090  E8 FF78					   call	  getchar
+    141	0093  3C 71					   cmp	  al,'q'
+    142	0095  74 0D					   jz	  fini
+    143	0097  B4 00					   mov	  ah,0
+    144	0099  E8 FFD5					   call	newline
+    145	009C  E8 FF73					   call	  hex
+    146	009F  E8 FFCF					   call	  newline
+    147	00A2  EB E6					   jmp	  rolling
+    148	00A4				     fini:
+    149	00A4  C3					   retn
+    150
+    151	00A5			     circle endp
+    152
+    153
+    154					     ;调用约定：ax存放基地址，cx存放长度，bl存放目标字符
+    155	00A5			     memset proc near
+    156	00A5  57					   push	  di
+    157	00A6  8B F8					   mov	  di,ax
+    158	00A8				     memset_circle:
+    159	00A8  83 F9 00					   cmp	  cx,0
+    160	00AB  74 06					   jz	  memset_fini
+    161	00AD  88 1D					   mov	  ds:[di],bl
+    162	00AF  47					   inc	  di
+    163	00B0  49					   dec	  cx
+    164	00B1  EB F5					   jmp	  memset_circle
+    165
+    166	00B3				     memset_fini:
+    167	00B3  5F					   pop	  di
+    168	00B4  C3					   ret
+    169	00B5			     memset endp
+    170
+    171
+Turbo Assembler	 Version 4.1	    24/11/28 20:32:00	    Page 4
+D:\t1\t1.asm
+
+
+
+    172	00B5			     exit proc near
+    173	00B5  B4 4C					   mov	  ah,4Ch
+    174	00B7  B0 00					   mov	  al,0
+    175	00B9  CD 21					   int	  21h
+    176	00BB			     exit endp
+    177
+    178	00BB				     BEGIN:
+    179	00BB  B8 0000s					   MOV	  AX,DSEG
+    180	00BE  8E D8					   MOV	  DS,AX
+    181
+    182
+    183	00C0  E8 FFAE					   call	  newline
+    184	00C3  B8 0111r					   lea	  AX,STUID
+    185	00C6  E8 FF8B					   call	  print
+    186
+    187
+    188	00C9  E8 FFA5					   call	  newline
+    189	00CC  B8 0003r					   lea	  AX,buffer
+    190	00CF  B9 00FF					   mov	  cx,0ffh
+    191	00D2  B3 24					   mov	  bl,'$'
+    192	00D4  E8 FFCE					   call	  memset
+    193	00D7  B8 0003r					   lea	  AX,buffer
+    194	00DA  E8 FF9D					   call	  input
+    195
+    196
+    197	00DD  E8 FF91					   call	  newline
+    198	00E0  B8 0005r					   lea	  ax,[buffer+2]
+    199	00E3  E8 FF6E					   call	  print
+    200
+    201
+    202	00E6  E8 FF88					   call	  newline
+    203	00E9  B8 011Br					   lea	  AX,STUNAME
+    204	00EC  E8 FF65					   call	  print
+    205
+    206
+    207	00EF  E8 FF7F					   call	  newline
+    208	00F2  B8 0003r					   lea	  AX,buffer
+    209	00F5  B9 00FF					   mov	  cx,0ffh
+    210	00F8  B3 24					   mov	  bl,'$'
+    211	00FA  E8 FFA8					   call	  memset
+    212	00FD  B8 0003r					   lea	  AX,buffer
+    213	0100  E8 FF77					   call	  input
+    214
+    215
+    216	0103  E8 FF6B					   call	  newline
+    217	0106  B8 0005r					   lea	  ax,[buffer+2]
+    218	0109  E8 FF48					   call	  print
+    219	010C  E8 FF62					   call	  newline
+    220
+    221	010F  E8 FF78					   call	  circle
+    222
+    223
+    224	0112  E8 FFA0					   call	  exit
+    225	0115			     CSEG ENDS
+    226					     END  BEGIN
+Turbo Assembler	 Version 4.1	    24/11/28 20:32:00	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "24/11/28"
+??FILENAME			  Text	 "t1	  "
+??TIME				  Text	 "20:32:00"
+??VERSION			  Number 040A
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 T1
+@WORDSIZE			  Text	 2
+BEGIN				  Near	 CSEG:00BB
+BINARY				  Near	 CSEG:0032
+BINARYAGAIN			  Near	 CSEG:0036
+BINARYOVER			  Near	 CSEG:0051
+BUFFER				  Byte	 DSEG:0003
+CIRCLE				  Near	 CSEG:008A
+CMDPRO				  Byte	 DSEG:0103
+EXIT				  Near	 CSEG:00B5
+FINI				  Near	 CSEG:00A4
+GETCHAR				  Near	 CSEG:000B
+HEX				  Near	 CSEG:0012
+INPUT				  Near	 CSEG:007A
+L1				  Near	 CSEG:0018
+MEMSET				  Near	 CSEG:00A5
+MEMSET_CIRCLE			  Near	 CSEG:00A8
+MEMSET_FINI			  Near	 CSEG:00B3
+NEWLINE				  Near	 CSEG:0071
+NEXT_ROW			  Byte	 DSEG:0000
+PRINT				  Near	 CSEG:0054
+PRINTIT				  Near	 CSEG:0028
+PRINTLN				  Near	 CSEG:0063
+PUTCHAR				  Near	 CSEG:0000
+ROLLING				  Near	 CSEG:008A
+STUID				  Byte	 DSEG:0111
+STUNAME				  Byte	 DSEG:011B
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  0115 Para	  none
+DSEG				  16  0127 Para	  none
+SSEG				  16  0200 Para	  Stack
+
