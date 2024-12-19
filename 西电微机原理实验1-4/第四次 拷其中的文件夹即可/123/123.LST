@@ -1,0 +1,151 @@
+Turbo Assembler	 Version 4.1	    13/01/01 01:58:21	    Page 1
+D:\123\123.asm
+
+
+
+      1	      =0273		     COM_ADD EQU 0273H
+      2	      =0270		     PA_ADD EQU	0270H
+      3	      =0271		     PB_ADD EQU	0271H
+      4	      =0272		     PC_ADD EQU	0272H
+      5	0000			     _STACK SEGMENT STACK
+      6	0000  64*(????)		      DW 100 DUP(?)
+      7	00C8			     _STACK ENDS
+      8	0000			     _DATA SEGMENT WORD	PUBLIC 'DATA'
+      9	0000			     _DATA ENDS
+     10	0000			     CODE SEGMENT
+     11	0000			     START PROC	NEAR
+     12					     ASSUME CS:CODE, DS:_DATA, SS:_STACK
+     13	0000  B8 0000s			     MOV AX,_DATA  ; 将数据段地址加载到AX寄存器
+     14	0003  8E D8			     MOV DS,AX ; 将数据段地址传送给数据段寄存器DS
+     15	0005  90			     NOP
+     16	0006  BA 0273			     MOV DX,COM_ADD ; 将串口地址传送给DX寄存器
+     17	0009  B0 82			     MOV AL,82H	; 设置AL寄存器的值为82H
+     18	000B  EE			     OUT DX,AL
+     19
+     20
+     21	000C			     INPUT:
+     22						      ;	清零操作
+     23	000C  B8 FFFF				     MOV     AX, 0FFFFH
+     24	000F  BA 0270				     MOV     DX, PA_ADD
+     25	0012  EF				     OUT     DX, AX
+     26	0013  BA 0272				     MOV     DX, PC_ADD
+     27	0016  EF				     OUT     DX, AX
+     28						     ; 输入操作
+     29	0017  BA 0271				     MOV     DX, PB_ADD
+     30	001A  EC				     IN	     al, DX
+     31	001B  B4 00				     mov    ah,	0
+     32
+     33						     ; 判断
+     34	001D  3C FF				     CMP     al, 0FFH ;全1
+     35	001F  74 0A				     JZ	low1
+     36	0021  3C 00				     CMP     al, 0 ;全0
+     37	0023  74 2A				     JZ	high1
+     38	0025  BA 0270				     MOV     DX, PA_ADD
+     39	0028  EE				     OUT     DX, al
+     40	0029  EB E1				     JMP     INPUT
+     41				     ; 处理输入值为0-7的情况
+     42	002B			     low1:
+     43	002B  B0 7F				     MOV     al, 7FH ; 设置AL寄存器的值为7FH
+     44	002D  BA 0270				     MOV     DX, PA_ADD	; 将并口PA地址传送给DX寄存器
+     45	0030			     low2:
+     46	0030  D0 C0				     ROL     al, 1 ; 将AL寄存器的值左循环移位1位
+     47	0032  EE				     OUT     DX, al
+     48	0033  E8 003D				     CALL    Delay
+     49	0036  3C 7F				     CMP     al, 7FH
+     50	0038  75 F6				     JNE     low2
+     51	003A  B8 FFFF				     MOV    AX,	0FFFFH ; 将AX寄存器的值设为0xFFFF
+     52	003D  EF				     OUT     DX, AX
+     53				     ; 处理输入值为8-15的情况
+     54	003E			     low3:
+     55	003E  B0 7F				     MOV     al, 7FH
+     56	0040  BA 0272				     MOV     DX, PC_ADD
+     57	0043			     low4:
+Turbo Assembler	 Version 4.1	    13/01/01 01:58:21	    Page 2
+D:\123\123.asm
+
+
+
+     58	0043  D0 C0				     ROL     al, 1
+     59	0045  EE				     OUT     DX, al
+     60	0046  E8 002A				     CALL    Delay
+     61	0049  3C 7F				     CMP     al, 7FH
+     62	004B  75 F6				     JNE     low4
+     63	004D  EB BD				     JMP     INPUT
+     64
+     65				     ; 处理输入值为15-8的情况
+     66	004F			     high1:
+     67	004F  B0 FE				     MOV     al, 0FEH
+     68	0051  BA 0272				     MOV     DX, PC_ADD
+     69	0054			     high2:
+     70	0054  D0 C8				     ROR     al, 1
+     71	0056  EE				     OUT     DX, al
+     72	0057  E8 0019				     CALL    Delay
+     73	005A  3C FE				     CMP     al, 0FEH
+     74	005C  75 F6				     JNE     high2
+     75	005E  B8 FFFF				     MOV    AX,	0FFFFH
+     76	0061  EF				     OUT     DX, AX
+     77				     ; 处理输入值为7-0的情况
+     78	0062			     high3:
+     79	0062  B0 FE				     MOV     al, 0FEH
+     80	0064  BA 0270				     MOV     DX, PA_ADD
+     81	0067			     high4:
+     82	0067  D0 C8				     ROR     al, 1
+     83	0069  EE				     OUT     DX, al
+     84	006A  E8 0006				     CALL    Delay
+     85	006D  3C FE				     CMP     al, 0FEH
+     86	006F  75 F6				     JNE     high4
+     87	0071  EB 99				     JMP     INPUT
+     88
+     89
+     90
+     91
+     92	0073			     Delay   PROC NEAR
+     93	0073			     Delay1:
+     94	0073  33 C9		     XOR     CX,CX
+     95	0075  E2 FE				     LOOP    $
+     96	0077  C3				     RET
+     97	0078			     Delay   ENDP
+     98
+     99
+    100	0078			     START ENDP
+    101	0078			     CODE ENDS
+    102				     END START
+Turbo Assembler	 Version 4.1	    13/01/01 01:58:21	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "13/01/01"
+??FILENAME			  Text	 "123	  "
+??TIME				  Text	 "01:58:21"
+??VERSION			  Number 040A
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CODE
+@FILENAME			  Text	 123
+@WORDSIZE			  Text	 2
+COM_ADD				  Number 0273
+DELAY				  Near	 CODE:0073
+DELAY1				  Near	 CODE:0073
+HIGH1				  Near	 CODE:004F
+HIGH2				  Near	 CODE:0054
+HIGH3				  Near	 CODE:0062
+HIGH4				  Near	 CODE:0067
+INPUT				  Near	 CODE:000C
+LOW1				  Near	 CODE:002B
+LOW2				  Near	 CODE:0030
+LOW3				  Near	 CODE:003E
+LOW4				  Near	 CODE:0043
+PA_ADD				  Number 0270
+PB_ADD				  Number 0271
+PC_ADD				  Number 0272
+START				  Near	 CODE:0000
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CODE				  16  0078 Para	  none
+_DATA				  16  0000 Word	  Public  DATA
+_STACK				  16  00C8 Para	  Stack
+
